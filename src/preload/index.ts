@@ -1,22 +1,19 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { CreateNote, DeleteNote, GetNotes, ReadNote, WriteNote } from '@shared/types'
+import { contextBridge, ipcRendered } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
+if (!process.contextIsolated) {
+  throw new Error('contextIsolation must be enabled in the BrowserWindow')
+}
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
-  }
-} else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+try {
+  contextBridge.exposeInMainWorld('context', {
+    locale: navigator.language,
+    getNotes: (...args: Parameters<GetNotes>) => ipcRendered.invoke('get-notes', ...args),
+    readNote: (...args: Parameters<ReadNote>) => ipcRendered.invoke('read-note', ...args),
+    writeNote: (...args: Parameters<WriteNote>) => ipcRendered.invoke('write-note', ...args),
+    createNote: (...args: Parameters<CreateNote>) => ipcRendered.invoke('create-note', ...args),
+    deleteNote: (...args: Parameters<DeleteNote>) => ipcRendered.invoke('delete-note', ...args)
+})
+} catch (error) {
+  console.error(error)
 }
