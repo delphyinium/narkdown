@@ -1,33 +1,36 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import {
+  ActionButtonsRow,
+  Content,
+  DraggableTopBar,
+  FloatingNoteTitle,
+  MarkdownEditor,
+  NotePreviewList,
+  RootLayout,
+  Sidebar
+} from '@/components'
+import { useRef } from 'react'
 
-function App(): JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+const App = () => {
+  const contentContainerRef = useRef<HTMLDivElement>(null)
+
+  const resetScroll = () => {
+    contentContainerRef.current?.scrollTo(0, 0)
+  }
 
   return (
     <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
+      <DraggableTopBar />
+      <RootLayout>
+        <Sidebar className="p-2">
+          <ActionButtonsRow className="flex justify-between mt-1" />
+          <NotePreviewList className="mt-3 space-y-1" onSelect={resetScroll} />
+        </Sidebar>
+
+        <Content ref={contentContainerRef} className="border-l bg-zinc-900/50 border-l-white/20">
+          <FloatingNoteTitle className="pt-2" />
+          <MarkdownEditor />
+        </Content>
+      </RootLayout>
     </>
   )
 }
